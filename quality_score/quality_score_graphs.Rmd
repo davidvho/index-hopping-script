@@ -18,6 +18,8 @@ R3 = read.delim("/Users/davidho/Desktop/talapas_output/1294_S1_L008_R3_001.fastq
 R4 = read.delim("/Users/davidho/Desktop/talapas_output/1294_S1_L008_R4_001.fastq.gz_q_score_metrics.txt")
 ```
 
+### Graphs
+
 ```{r}
 plot(R3[,1], 
      type="n", 
