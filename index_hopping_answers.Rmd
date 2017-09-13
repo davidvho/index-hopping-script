@@ -11,17 +11,19 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r, echo=FALSE, warning=FALSE}
-R1_means = read.delim("/Users/davidho/Desktop/turn_in/quality_scores_output_files//R1_means.txt", header=TRUE)
-R1_freq = read.delim("/Users/davidho/Desktop/turn_in/quality_scores_output_files//R1_freq.txt", row.names = NULL, col.names = c("Mean", "Frequency"))
+setwd("~/Desktop/shell/barcode_hopping/quality-and-index-hopping-davidvho/quality_scores_output_files")
 
-R2_means = read.delim("/Users/davidho/Desktop/turn_in/quality_scores_output_files//R2_means.txt", header=TRUE)
-R2_freq = read.delim("/Users/davidho/Desktop/turn_in/quality_scores_output_files//R2_freq.txt", row.names = NULL, col.names = c("Mean", "Frequency"))
+R1_means = read.delim("R1_means.txt", header=TRUE)
+R1_freq = read.delim("R1_freq.txt", row.names = NULL, col.names = c("Mean", "Frequency"))
 
-R3_means = read.delim("/Users/davidho/Desktop/turn_in/quality_scores_output_files//R3_means.txt", header=TRUE)
-R3_freq = read.delim("/Users/davidho/Desktop/turn_in/quality_scores_output_files//R3_freq.txt", row.names = NULL, col.names = c("Mean", "Frequency"))
+R2_means = read.delim("R2_means.txt", header=TRUE)
+R2_freq = read.delim("R2_freq.txt", row.names = NULL, col.names = c("Mean", "Frequency"))
 
-R4_means = read.delim("/Users/davidho/Desktop/turn_in/quality_scores_output_files//R4_means.txt", header=TRUE)
-R4_freq = read.delim("/Users/davidho/Desktop/turn_in/quality_scores_output_files//R4_freq.txt", row.names = NULL, col.names = c("Mean", "Frequency"))
+R3_means = read.delim("R3_means.txt", header=TRUE)
+R3_freq = read.delim("R3_freq.txt", row.names = NULL, col.names = c("Mean", "Frequency"))
+
+R4_means = read.delim("R4_means.txt", header=TRUE)
+R4_freq = read.delim("R4_freq.txt", row.names = NULL, col.names = c("Mean", "Frequency"))
 ```
 
 
@@ -239,6 +241,26 @@ text(x = c(0.75, 1.9, 3.1, 4.3), y = index$percent, label = round(index$percent,
 Even after filtering the reads by a cutoff of 30, there were still 330975 reads that were indicative of index swapping. With Illumina technology, especially with patterned flow cells, it is important to use unique dual indices when multiplexing samples because that would be the only way to know if there was index swapping.
 
 Overall, having actually help create the samples that were sequenced, utilizing only 62% of the data is disheartening. But even so, we still have 226,715,602 potentially good reads to do downstream analysis. 
+
+Comparing the actually index pairs...
+
+```{r, echo=FALSE, fig.align='center'}
+counts = read.delim("/Users/davidho/Desktop/index_counts.txt", header=TRUE)
+library(ggplot2)
+counts$"log(counts)" = log(counts$counts)
+ggplot(data = counts, aes(x=index1_R2, y=index2_R3, fill=log(counts))) + 
+  geom_tile() +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, size = 7, hjust = 1)) +
+  theme(axis.text.y = element_text(vjust = 1, size = 7, hjust = 1)) +
+  xlab("Index 1 (R2)") +
+  ylab("Index 2 (R3)") +
+  ggtitle("Comparing counts of index pairs") +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+Lighter colors indicate greater abundance of an index pair (log-scale). Overall, there are way more expected index pairs from the sequencing but every swapped index pair was sequenced as well. Reads with TACCGGAT_TACCGGAT were the most abundant, and the number of swapped indexes with TACCGGAT as one of the pair was the most abundant as well. 
+
+There was uneven coverage as certain samples had more reads after sequencing, perhaps due to initial library pooling. TACCGGAT_TACCGGAT was the most abundant with 49,686,878 reads, while CGGTAATC_CGGTAATC had only 2,393,021 reads. Because the number of swapped indexes with TACCGGAT was the most abundant, this could suggest that swapping of a particular index correlates with the initial amount of that index pair in the pooled library.
 
 <br>
 
