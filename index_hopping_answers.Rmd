@@ -1,0 +1,267 @@
+---
+title: "Index Hopping"
+subtitle: "Questions & answers"
+author: "David Ho"
+date: "9/12/2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, echo=FALSE, warning=FALSE}
+setwd("~/Desktop/shell/barcode_hopping/quality-and-index-hopping-davidvho/quality_scores_output_files")
+
+R1_means = read.delim("R1_means.txt", header=TRUE)
+R1_freq = read.delim("R1_freq.txt", row.names = NULL, col.names = c("Mean", "Frequency"))
+
+R2_means = read.delim("R2_means.txt", header=TRUE)
+R2_freq = read.delim("R2_freq.txt", row.names = NULL, col.names = c("Mean", "Frequency"))
+
+R3_means = read.delim("R3_means.txt", header=TRUE)
+R3_freq = read.delim("R3_freq.txt", row.names = NULL, col.names = c("Mean", "Frequency"))
+
+R4_means = read.delim("R4_means.txt", header=TRUE)
+R4_freq = read.delim("R4_freq.txt", row.names = NULL, col.names = c("Mean", "Frequency"))
+```
+
+
+<br>
+
+### 1. Generate per base call distribution of quality scores for read1, read2, index1, and index2. Generate a per nucleotide distribution as you did in part 1 of PS4 (in Leslie’s class). 
+
+<br>
+
+#### Next, average the Quality scores for each read (for each of the four files) and plot frequency of the Quality Scores.
+
+<br>
+
+#### a. Turn in the 8 histograms.
+
+See `/plots/` folder.
+
+<br>
+
+#### b. What is a good quality score cutoff for index reads and pairs to utilize for sample identification and downstream analysis, respectively?
+
+```{r, fig.align='center', echo=FALSE}
+plot(R3_means[,1], 
+     type="n", 
+     ylim=c(30,40),
+     ylab="Mean quality score",
+     xlab="Bp position",
+     main="Mean quality score for barcode reads",
+     font.lab=2)
+lines(R2_means, col="red")
+lines(R3_means)
+legend(7, 32, legend=c("R2", "R3"), col=c("red", "black"), lty=1)
+```
+
+We define cutoff as the following:
+
+```
+If ALL of the nucleotides of both index reads are above (or equal to) your minimum quality score, that record should be retained.
+```
+
+If we look at just the index files (`R2` & `R3`), the lowest average quality score at a particular position between the two files is 30.49904 at the 2nd position in the `R3` file. Therefore, 30 should be the cutoff for sample identification and downstream analysis. If we choose anything higher than 30, many reads will be discarded because on average, the quality score at 2nd position of `R3` is just above 30.
+
+<br>
+
+#### c. How many indexes have Undetermined (N) base calls? (Utilize your command line tool knowledge. Summit the command you used. CHALLENGE: use a one line command)
+
+```
+awk 'NR%4==2' /projects/bgmp/2017_sequencing/1294_S1_L008_R2_001.fastq | grep "N" | wc -l
+awk 'NR%4==2' /projects/bgmp/2017_sequencing/1294_S1_L008_R3_001.fastq | grep "N" | wc -l
+
+R2
+3976613
+R3
+3328051
+```
+
+In `R2`, there are 3976613 indexes that have N base calls.
+
+In `R3`, there are 3328051 indexes that have N base calls.
+
+<br>
+
+#### d. What do the averaged Quality Scores across the reads tell you? Interpret your data specifically.
+
+```{r echo=FALSE, fig.align='center'}
+par(las=1, mfrow=c(2,2), cex.main=0.75, font.lab=2)
+
+R1_freq$bin = cut(R1_freq$Mean,breaks = c(10,15,20,25,30,35,41))
+R1_new = aggregate(Frequency ~ bin, data=R1_freq, sum)
+barplot(R1_new$Frequency, 
+        space=0, 
+        width=1, 
+        xlim=c(0,6),
+        ylim=c(0,3.5e+08),
+        ylab="Count",
+        xlab="Average quality score/read",
+        col="lightblue",
+        main="Distribution of avg read quality scores (R1)",
+        cex.axis = 0.5
+)
+axis(1, at = 0:6, labels = c(10,15,20,25,30,35,41), cex.axis=0.6)
+
+R2_freq$bin = cut(R2_freq$Mean,breaks = c(10,15,20,25,30,35,41))
+R2_new = aggregate(Frequency ~ bin, data=R2_freq, sum)
+barplot(R2_new$Frequency, 
+        space=0, 
+        width=1, 
+        xlim=c(0,6),
+        ylim=c(0,3.5e+08),
+        ylab="Count",
+        xlab="Average quality score/read",
+        col="lightgreen",
+        main="Distribution of avg read quality scores (R4)",
+        cex.axis = 0.5
+)
+axis(1, at = 0:6, labels = c(10,15,20,25,30,35,41), cex.axis=0.6)
+
+R2_freq$bin = cut(R2_freq$Mean,breaks = c(10,15,20,25,30,35,41))
+R2_new = aggregate(Frequency ~ bin, data=R2_freq, sum)
+barplot(R2_new$Frequency, 
+        space=0, 
+        width=1, 
+        xlim=c(0,6),
+        ylim=c(0,3.5e+08),
+        ylab="Count",
+        xlab="Average quality score/read",
+        col="darkred",
+        main="Distribution of avg read quality scores (R2)",
+        cex.axis = 0.5
+)
+axis(1, at = 0:6, labels = c(10,15,20,25,30,35,41), cex.axis=0.6)
+
+R3_freq$bin = cut(R3_freq$Mean,breaks = c(10,15,20,25,30,35,41))
+R3_new = aggregate(Frequency ~ bin, data=R3_freq, sum)
+barplot(R3_new$Frequency, 
+        space=0, 
+        width=1, 
+        xlim=c(0,6),
+        ylim=c(0,3.5e+08),
+        ylab="Count",
+        xlab="Average quality score/read",
+        col="grey",
+        main="Distribution of avg read quality scores (R3)",
+        cex.axis = 0.5
+)
+axis(1, at = 0:6, labels = c(10,15,20,25,30,35,41), cex.axis=0.6)
+```
+
+Overall, the majority of the reads have an average read quality score of 35 more higher.
+
+`R1` has the highest proportion of reads that have average quality reads of 35 or higher.
+
+`R3` has the lowest proportion of reads that have average quality reads of 35 or higher. 
+
+It was surprising to me to see that in all four files, there were reads that had average quality scores less than 15, even though they make up a very low proportion.
+
+Considering the number of reads there are and the majority of them have average qualities of 35+, it seems like this was a good sequencing run.
+
+<br>
+
+### 2. Write a program to de-multiplex the samples and document index swapping and number of reads retained per sample.
+
+See the file `demultiplex_counts.py`
+
+SLURM script:
+```
+/usr/bin/time -v python demultiplex_counts.py -R1 /projects/bgmp/2017_sequencing/1294_S1_L008_R1_001.fastq.gz \
+-R2 /projects/bgmp/2017_sequencing/1294_S1_L008_R2_001.fastq.gz \
+-R3 /projects/bgmp/2017_sequencing/1294_S1_L008_R3_001.fastq.gz \
+-R4 /projects/bgmp/2017_sequencing/1294_S1_L008_R4_001.fastq.gz \
+-i indexes_edited.txt \
+-c 30
+```
+
+<br>
+
+#### a. How many reads are retained for each expected index pair? What is the percentage?
+
+Retained means that the read pass cutoff.
+
+There were 363246735 in total, in which `r 363246735 - 131018591` reads passed the cutoff of 30. Which means that the quality score of each base position in the index reads were at or above 30. 
+
+Out of the retained reads, 226715602 had expected index pairs.
+
+Therefore, out of the retained reads, `r 226715602 / (363246735 - 131018591) * 100`% had expcted index pairs. Out of all reads, 62.41% of them passed cutoff and had expected index pairs.
+
+The following is part of the output from `demultiplex_counts.py`:
+```
+Cutoff:          30
+Number of reads:         363246735
+Number of retained, EXPECTED index pairs:        226715602
+Percentage of retained, EXPECTED index pairs out of all reads:    62.41366546625671 %
+Number of retained, BAD index pairs (AKA Index-swapping):        330975
+Number of retained reads with Ns in the barcode:          0
+Number of retained reads that have index not matching list (sequencing errors):   5181567
+Number of retained reads with Ns or sequencing errors:    5181567
+Number of reads below cutoff:    131018591
+```
+
+<br>
+
+#### b. How many reads are indicative of index swapping?
+
+After discarding reads that did not meet a cutoff of 30, **330975** reads had index pairs that suggested index swapping occurred.
+
+See files in `/index_pair_counts/` for counts of each expected & swapped index pair.
+
+<br>
+
+#### c. Create a distribution of swapped indexes. What does this histogram tell you/what is your interpretation of this data?
+
+```{r, fig.align='center', echo=FALSE}
+index = data.frame(c("Expected index pair", "Index swapped", "Unmatched indexes", "Below cutoff"), c(226715602, 330975, 5181567, 131018591))
+
+index$percent <- index[,2] / sum(index[,2]) * 100
+
+colnames(index) = c("type", "count", "percent")
+
+
+barplot(index$percent,
+        names.arg = index$type,
+        ylim = c(0,70),
+        xlab = "Type of read",
+        ylab = "Percent of all reads",
+        font.lab = 2,
+        cex.main = 0.8,
+        cex.axis = 0.8,
+        cex.names = 0.8,
+        las = 1,
+        main = "Distribution of reads after demultiplexing\nTotal reads = 363,246,735\nCutoff = 30"
+        )
+text(x = c(0.75, 1.9, 3.1, 4.3), y = index$percent, label = round(index$percent,2), pos = 3, cex = 0.8, col = "red")
+```
+
+Even after filtering the reads by a cutoff of 30, there were still 330975 reads that were indicative of index swapping. With Illumina technology, especially with patterned flow cells, it is important to use unique dual indices when multiplexing samples because that would be the only way to know if there was index swapping.
+
+Overall, having actually help create the samples that were sequenced, utilizing only 62% of the data is disheartening. But even so, we still have 226,715,602 potentially good reads to do downstream analysis. 
+
+Comparing the actually index pairs...
+
+```{r, echo=FALSE, fig.align='center'}
+counts = read.delim("/Users/davidho/Desktop/index_counts.txt", header=TRUE)
+library(ggplot2)
+counts$"log(counts)" = log(counts$counts)
+ggplot(data = counts, aes(x=index1_R2, y=index2_R3, fill=log(counts))) + 
+  geom_tile() +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, size = 7, hjust = 1)) +
+  theme(axis.text.y = element_text(vjust = 1, size = 7, hjust = 1)) +
+  xlab("Index 1 (R2)") +
+  ylab("Index 2 (R3)") +
+  ggtitle("Comparing counts of index pairs") +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+Lighter colors indicate greater abundance of an index pair (log-scale). Overall, there are way more expected index pairs from the sequencing but every swapped index pair was sequenced as well. Reads with TACCGGAT_TACCGGAT were the most abundant, and the number of swapped indexes with TACCGGAT as one of the pair was the most abundant as well. 
+
+There was uneven coverage as certain samples had more reads after sequencing, perhaps due to initial library pooling. TACCGGAT_TACCGGAT was the most abundant with 49,686,878 reads, while CGGTAATC_CGGTAATC had only 2,393,021 reads. Because the number of swapped indexes with TACCGGAT was the most abundant, this could suggest that swapping of a particular index correlates with the initial amount of that index pair in the pooled library.
+
+<br>
+
+### ~~3. List your filenames and the number of reads contained within each one.~~
