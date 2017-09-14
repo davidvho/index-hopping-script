@@ -8,6 +8,7 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(pander)
 ```
 
 ```{r, echo=FALSE, warning=FALSE}
@@ -203,6 +204,16 @@ Number of retained reads with Ns or sequencing errors:    5181567
 Number of reads below cutoff:    131018591
 ```
 
+```{r, echo=FALSE}
+expected_counts = read.delim("/Users/davidho//Desktop/shell/barcode_hopping/quality-and-index-hopping-davidvho/index_pair_counts/index_counts.txt", header=TRUE)
+expected_counts = expected_counts[1:24,]
+expected_counts$percent_of_above_cutoff = expected_counts$counts/(363246735-131018591)*100
+expected_counts$percent_of_all_reads = expected_counts$counts/363246735*100
+expected_counts$index = paste(expected_counts$index1_R2, expected_counts$index2_R3, sep = "_")
+expected_counts = expected_counts[, c(6,3,4,5)]
+pander(expected_counts)
+```
+
 <br>
 
 #### b. How many reads are indicative of index swapping?
@@ -245,7 +256,7 @@ Overall, having actually help create the samples that were sequenced, utilizing 
 Comparing the actually index pairs...
 
 ```{r, echo=FALSE, fig.align='center'}
-counts = read.delim("/Users/davidho/Desktop/index_counts.txt", header=TRUE)
+counts = read.delim("/Users/davidho//Desktop/shell/barcode_hopping/quality-and-index-hopping-davidvho/index_pair_counts/index_counts.txt", header=TRUE)
 library(ggplot2)
 counts$"log(counts)" = log(counts$counts)
 ggplot(data = counts, aes(x=index1_R2, y=index2_R3, fill=log(counts))) + 
